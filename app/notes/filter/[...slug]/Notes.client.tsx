@@ -7,8 +7,7 @@ import { fetchNotes } from '@/lib/api';
 import NoteList from '@/components/NoteList/NoteList';
 import Pagination from '@/components/Pagination/Pagination';
 import SearchBox from '@/components/SearchBox/SearchBox';
-import Modal from '@/components/Modal/Modal';
-import NoteForm from '@/components/NoteForm/NoteForm';
+import Link from 'next/link';
 
 import css from './NotesPage.module.css';
 
@@ -20,13 +19,13 @@ type Props = {
 export default function NotesClient({ tag, initialData }: Props) {
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
-    const [showModal, setShowModal] = useState(false);
     const [debouncedQuery] = useDebounce(search, 500);
 
     const { data, isSuccess } = useQuery({
         queryKey: ['notes', debouncedQuery, page, tag],
         queryFn: () => fetchNotes({ page, search: debouncedQuery, tag }),
         initialData,
+        placeholderData: initialData,
     });
 
     const handleSearch = (value: string) => {
@@ -45,18 +44,13 @@ export default function NotesClient({ tag, initialData }: Props) {
                         onPageChange={setPage}
                     />
                 )}
-                <button className={css.button} onClick={() => setShowModal(true)}>
+
+                <Link href="/notes/action/create" className={css.button}>
                     Створити нотатку +
-                </button>
+                </Link>
             </div>
 
             {isSuccess && <NoteList items={data.notes} />}
-
-            {showModal && (
-                <Modal onClose={() => setShowModal(false)}>
-                    <NoteForm onClose={() => setShowModal(false)} />
-                </Modal>
-            )}
         </div>
     );
 }

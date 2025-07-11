@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
+import { useState, ChangeEvent, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createNote } from '@/lib/api';
 import { useNoteStore } from '@/lib/store/noteStore';
 import type { NewNote } from '@/types/note';
@@ -14,38 +15,44 @@ interface NoteFormProps {
 
 export default function NoteForm({ onSuccess }: NoteFormProps) {
     const router = useRouter();
-    const [isLoading, setLoading] = useState(false);
+    const queryClient = useQueryClient();
 
     const draft = useNoteStore((state) => state.draft);
     const setDraft = useNoteStore((state) => state.setDraft);
     const clearDraft = useNoteStore((state) => state.clearDraft);
 
-    useEffect(() => {
+    const [isLoading, setIsLoading] = useState(false);
 
-    }, []);
-
-    const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setDraft({ [name]: value } as Partial<NewNote>);
-    };
-
-    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        setLoading(true);
-
-        try {
-            await createNote(draft);
+    const mutation = useMutation({
+        mutationFn: createNote,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['notes'] });
             clearDraft();
             if (onSuccess) {
                 onSuccess();
             } else {
                 router.back();
             }
-        } catch (error) {
+        },
+        onError: (error) => {
             console.error('Failed to create note:', error);
-        } finally {
-            setLoading(false);
-        }
+        },
+        onSettled: () => {
+            setIsLoading(false);
+        },
+    });
+
+    const handleChange = (
+        e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    ) => {
+        const { name, value } = e.target;
+        setDraft({ [name]: value } as Partial<NewNote>);
+    };
+
+    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setIsLoading(true);
+        mutation.mutate(draft);
     };
 
     return (
@@ -88,6 +95,7 @@ export default function NoteForm({ onSuccess }: NoteFormProps) {
                     <option value="Work">Work</option>
                     <option value="Personal">Personal</option>
                     <option value="Meeting">Meeting</option>
+                    <option value="Shopping">Shopping</option>
                 </select>
             </div>
 

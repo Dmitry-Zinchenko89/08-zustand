@@ -4,6 +4,7 @@ import Header from '@/components/Header/Header';
 import Footer from '@/components/Footer/Footer';
 import css from './Home.module.css';
 import { Roboto } from 'next/font/google';
+import type { Metadata } from 'next';
 
 const roboto = Roboto({
   subsets: ['latin'],
@@ -17,14 +18,21 @@ type ChildrenType = {
   modal: React.ReactNode;
 };
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'NoteHub',
   description: 'NoteHub — простий додаток для створення, пошуку та зберігання нотаток.',
   openGraph: {
     title: 'NoteHub',
     description: 'NoteHub — простий додаток для створення, пошуку та зберігання нотаток.',
     url: 'https://notehub-your-url.com',
-    images: ['https://ac.goit.global/fullstack/react/notehub-og-meta.jpg'],
+    images: [
+      {
+        url: 'https://ac.goit.global/fullstack/react/notehub-og-meta.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'NoteHub preview image',
+      },
+    ],
   },
 };
 

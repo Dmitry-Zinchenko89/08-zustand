@@ -1,13 +1,14 @@
 import { fetchNoteById } from '@/lib/api';
 import NoteDetails from './NoteDetails.client';
+import type { Metadata } from 'next';
 
 type Props = {
     params: Promise<{ id: string }>;
 };
 
-export async function generateMetadata({ params }: Props) {
-    const { id } = await params;
-    const note = await fetchNoteById(Number(id));
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+    const note = await fetchNoteById(Number((await params).id));
 
     return {
         title: `${note.title} | NoteHub`,
@@ -16,14 +17,19 @@ export async function generateMetadata({ params }: Props) {
             title: `${note.title} | NoteHub`,
             description: note.content.slice(0, 100),
             url: `https://notehub-your-url.com/notes/${note.id}`,
-            images: ['https://ac.goit.global/fullstack/react/notehub-og-meta.jpg'],
+            images: [
+                {
+                    url: 'https://ac.goit.global/fullstack/react/notehub-og-meta.jpg',
+                    width: 1200,
+                    height: 630,
+                    alt: 'NoteHub preview image',
+                },
+            ],
         },
     };
 }
 
-
-
-export default async function Page({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
-    return <NoteDetails id={Number(id)} />;
+export default async function Page({ params }: Props) {
+    const id = Number((await params).id);
+    return <NoteDetails id={id} />;
 }
